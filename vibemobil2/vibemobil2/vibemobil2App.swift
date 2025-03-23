@@ -11,7 +11,7 @@ import SwiftUI
 struct vibemobil2App: App {
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            WelcomeView()
         }
     }
 }
