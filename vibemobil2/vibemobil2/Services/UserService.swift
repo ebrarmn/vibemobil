@@ -1,44 +1,51 @@
 import Foundation
-import MongoSwift
 
 class UserService {
     static let shared = UserService()
-    private let collection: MongoCollection<BSONDocument>?
+    private var users: [User] = []
+    private var currentUserId: String?
     
     private init() {
-        collection = DatabaseService.shared.getCollection("users")
+        // Örnek kullanıcılar ekleyelim
+        users = [
+            User(name: "Admin", email: "admin@example.com", password: "admin123"),
+            User(name: "Test User", email: "test@example.com", password: "test123")
+        ]
     }
     
-    func register(user: User) async throws -> Bool {
-        guard let collection = collection else { return false }
+    func register(name: String, email: String, password: String) -> Bool {
+        // Email kontrolü
+        if users.contains(where: { $0.email == email }) {
+            return false
+        }
         
-        let document = try BSONEncoder().encode(user)
-        try await collection.insertOne(document)
+        let newUser = User(name: name, email: email, password: password)
+        users.append(newUser)
         return true
     }
     
-    func login(email: String, password: String) async throws -> User? {
-        guard let collection = collection else { return nil }
-        
-        let filter: BSONDocument = [
-            "email": email,
-            "password": password
-        ]
-        
-        if let document = try await collection.findOne(filter) {
-            return try BSONDecoder().decode(User.self, from: document)
+    func login(email: String, password: String) -> Bool {
+        if let user = users.first(where: { $0.email == email && $0.password == password }) {
+            currentUserId = user.id
+            return true
         }
-        return nil
+        return false
     }
     
-    func getUserById(_ id: BSONObjectID) async throws -> User? {
-        guard let collection = collection else { return nil }
-        
-        let filter: BSONDocument = ["_id": id]
-        
-        if let document = try await collection.findOne(filter) {
-            return try BSONDecoder().decode(User.self, from: document)
-        }
-        return nil
+    func logout() {
+        currentUserId = nil
+    }
+    
+    func getCurrentUserId() -> String? {
+        return currentUserId
+    }
+    
+    func getUserById(_ id: String) -> User? {
+        return users.first { $0.id == id }
+    }
+    
+    func getCurrentUser() -> User? {
+        guard let currentUserId = currentUserId else { return nil }
+        return getUserById(currentUserId)
     }
 } 

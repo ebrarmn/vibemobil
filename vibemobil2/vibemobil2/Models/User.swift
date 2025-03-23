@@ -1,8 +1,7 @@
 import Foundation
-import MongoSwift
 
 struct User: Codable {
-    let _id: BSONObjectID
+    let id: String
     var name: String
     var email: String
     var password: String
@@ -10,7 +9,7 @@ struct User: Codable {
     var updatedAt: Date
     
     init(name: String, email: String, password: String) {
-        self._id = BSONObjectID()
+        self.id = UUID().uuidString
         self.name = name
         self.email = email
         self.password = password

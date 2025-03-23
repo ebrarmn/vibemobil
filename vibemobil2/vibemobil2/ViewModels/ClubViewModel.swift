@@ -7,8 +7,8 @@ class ClubViewModel: ObservableObject {
     @Published var error: Error?
     
     init() {
-        // Şimdilik örnek verileri kullanıyoruz
-        loadSampleClubs()
+        // Geçici olarak örnek verileri kullanıyoruz
+        clubs = Club.sampleClubs
     }
     
     private func loadSampleClubs() {
@@ -22,20 +22,33 @@ class ClubViewModel: ObservableObject {
         isLoading = false
     }
     
-    func addClub(_ club: Club) {
-        // MongoDB'ye kulüp ekleme işlemi burada yapılacak
+    func createClub(_ club: Club) {
         clubs.append(club)
+        objectWillChange.send()
     }
     
     func updateClub(_ club: Club) {
-        // MongoDB'de kulüp güncelleme işlemi burada yapılacak
         if let index = clubs.firstIndex(where: { $0.id == club.id }) {
             clubs[index] = club
+            objectWillChange.send()
         }
     }
     
-    func deleteClub(_ club: Club) {
-        // MongoDB'den kulüp silme işlemi burada yapılacak
-        clubs.removeAll { $0.id == club.id }
+    func deleteClub(_ id: String) {
+        clubs.removeAll { $0.id == id }
+        objectWillChange.send()
+    }
+    
+    func getClubsByCategory(_ category: ClubCategory) -> [Club] {
+        clubs.filter { $0.category == category }
+    }
+    
+    func searchClubs(query: String) -> [Club] {
+        guard !query.isEmpty else { return clubs }
+        return clubs.filter {
+            $0.name.lowercased().contains(query.lowercased()) ||
+            $0.description.lowercased().contains(query.lowercased())
+        }
     }
 } 
+
